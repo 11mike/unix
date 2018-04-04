@@ -3,71 +3,57 @@ OUTPUT=/tmp/output.sh.$$
 vi_editor=${EDITOR-vi}
 trap "rm $OUTPUT; rm $INPUT; exit" SIGHUP SIGINT SIGTERM
 function display_output(){
-		local h=${1-10}		
-		local w=${2-41}
-		local t=${3-Output} 
-		dialog --backtitle "Linux Shell Script Tutorial" --title "${t}" --clear --msgbox "$(<$OUTPUT)" ${h} ${w}
-				}
-				
-							function Copy()
-							{
-								        echo "Enter filename"
-									        read f1
-										        echo "Enter destination"
-											        read f2
-												        if [ -f $f1 -a -f $f2 ]
-														         then cp $f1 $f2
-
-																  else
-																	           echo "file doesn't exist"
-																		    fi
-											
-									       
-																	    }
-							function Rename()
-																	    {
-																		            echo "Enter filename"
-																			            read f1
-																				            echo "Enter the name that you wish to change to"
-																					            read f2
-																						            mv $f1 $f2
-																						    }
-							
-																						    function Remove()
-																						    {
-																							           echo "enter the filename you want to remove"
-																								          read f
-																									         if [ -f $f ]
-																											        then
-																												                       rm $f
-																													               fi
-																													       }	       
-																						    while true
-							do
-
-								dialog --clear  --help-button --backtitle "Linux Shell Script Tutorial" \
-									--title "[ M A I N - M E N U ]" \
-									--menu "You can use the UP/DOWN arrow keys, the first \n\
-									letter of the choice as a hot key, or the \n\
-									number keys 1-9 to choose an option.\n\
-									Choose the TASK" 15 50 4 \
-									Date/time "copies the content" \
-									Calendar "rename the file" \
-									Editor "remove the file" \
-									Exit "Exit to the shell" 2>"${INPUT}"
-
-								menuitem=$(<"${INPUT}")
-
-
-										case $menuitem in
-										Date/time) Copy;;
-											Calendar) Rename;;
-												Editor)Remove ;;
-													Exit) echo "Bye"; break;;
-												esac
-
-											done
-
-											# if temp files found, delete em
-											[ -f $OUTPUT ] && rm $OUTPUT
-											[ -f $INPUT ] && rm $INPUT
+                local h=${1-10}            # box height default 10
+                local w=${2-41}            # box width default 41
+                local t=${3-Output}        # box title 
+dialog --backtitle "File operations" --title "${t}" --clear --msgbox "$(<$OUTPUT)" ${h} ${w}
+                                }
+copy1(){
+        cp $s1 $s2
+        display_output 6 60 "copy"
+        echo "Files succesfully copied" >$OUTPUT
+}
+move1(){
+        mv $s1 $s2
+        display_output 13 25 "move"
+        echo "Files succesfully moved" >$OUTPUT
+}
+common1(){
+        cmp $s1 $s2
+        display_output 7 57 "common"
+        echo "Files succesfully compared" >OUTPUT
+}
+difference1(){
+        diff $s1 $s2
+        display_output 6 60 "difference"
+        echo "succesfully found the difference between the files" >$OUTPUT
+}
+remove1(){
+        rm $s1
+        display_output 13 25 "remove"
+        echo "File succesfully removed" >OUTPUT
+}
+while true
+do
+dialog --clear  --help-button --backtitle "File operation" \
+        --title "[ M A I N - M E N U ]" \
+        --menu "You can use the UP/DOWN arrow keys, the first \n\
+        letter of the choice as a hot key, or the \n\
+        number keys 1-9 to choose an option.\n\
+        Choose the TASK" 15 50 4 \
+        copy "copy file1 to file2" \
+        common "compare file1 with file2" \
+        difference "difference between file1 and file2" \
+        move "move file1 to file2" \
+        remove "remove file1" \
+        Exit "Exit to the shell" 2>"${INPUT}"
+menuitem=$(<"${INPUT}")
+        case $menuitem in
+                copy) copy1;;
+                common) common1;;
+                difference) difference1;;
+                move) move1;;
+                remove) remove1;;
+                Exit) echo "BYE";break;;
+        esac
+done
